@@ -71,6 +71,18 @@ class SparkConsumerIntegrationTest {
     }
 
     @Test
+    fun should_healthcheck_respond() {
+        // S
+        SUT()
+
+        // E
+        val response = callUrl("http://localhost:${PORT}/_")
+
+        // V
+        assertThat(response.code(), `is`(200))
+    }
+
+    @Test
     @Disabled // FIXME: Why does stopping the Spark app fail?
     fun should_api_not_respond_when_killed() {
         // S
