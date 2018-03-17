@@ -12,6 +12,7 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.ZonedDateTime
 
@@ -22,14 +23,18 @@ import java.time.ZonedDateTime
  *
  * @author Ha3
  */
-object PdfReportGenerator {
-    private val BASE_PATH = Paths.get("testable-regular")
-
+object PdfReportGeneratorMain {
     @JvmStatic
     fun main(args: Array<String>) {
-        val cucumberReportPath = BASE_PATH.resolve("target/tzk/exec.json")
-        val outputPath = BASE_PATH.resolve("target/report.pdf")
-        val imagesPath = BASE_PATH.resolve("src/main/kotlin/test/resources/tzk/images")
+        PdfReportGenerator(Paths.get("testable-regular"))
+    }
+}
+
+class PdfReportGenerator(private val basePath: Path) : Runnable {
+    override fun run() {
+        val cucumberReportPath = basePath.resolve("target/tzk/exec.json")
+        val outputPath = basePath.resolve("target/report.pdf")
+        val imagesPath = basePath.resolve("src/main/kotlin/test/resources/tzk/images")
         val introResource = "/tzk/intro.md"
 
 

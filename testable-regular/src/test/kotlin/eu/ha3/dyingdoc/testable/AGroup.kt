@@ -16,4 +16,4 @@ import org.junit.runner.RunWith
     format = ["tzatziki.analysis.exec.gson.JsonEmitterReport:target/tzk"],
     glue = ["features"]
 )
-class BootstrappingTest
+abstract class AGroup
