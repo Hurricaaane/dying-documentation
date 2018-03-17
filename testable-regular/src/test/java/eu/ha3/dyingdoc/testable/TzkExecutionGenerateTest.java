@@ -13,11 +13,11 @@ import java.nio.file.Paths;
  * @author Ha3
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses(BootstrappingGroup.class)
+@Suite.SuiteClasses({AllGroups.class})
 public class TzkExecutionGenerateTest {
     @AfterClass
     public static void generateExecutionReport() {
-        System.out.println("After all...");
+        System.out.println("Generating PDF");
         new PdfReportGenerator(Paths.get("")).run();
     }
 }

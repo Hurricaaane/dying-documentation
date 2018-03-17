@@ -12,8 +12,11 @@ import org.junit.runner.RunWith
  */
 @RunWith(Cucumber::class)
 @CucumberOptions(
-    features = ["classpath:features/bootstrapping.feature"],
     format = ["tzatziki.analysis.exec.gson.JsonEmitterReport:target/tzk"],
-    glue = ["features"]
+    glue = ["features"],
+    features = [
+        "classpath:features/bootstrapping.feature",
+        "classpath:features/event.feature"
+    ]
 )
-abstract class AGroup
+class AllGroups

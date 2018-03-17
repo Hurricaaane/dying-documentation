@@ -9,10 +9,10 @@ Feature: Bootstrapping
 
   Scenario: the web application is responding
     Given the API runs
-    When visit the root path
+    When I visit the root path
     Then I get any response
 
   Scenario: the web application is healthy
     Given the API runs
-    When visit the health check
+    When I visit the health check
     Then the status code is 200

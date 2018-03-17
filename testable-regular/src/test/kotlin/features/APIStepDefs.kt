@@ -1,11 +1,12 @@
 package features
 
+import com.google.gson.Gson
+import com.google.gson.JsonParser
 import cucumber.api.Scenario
 import cucumber.api.java8.En
+import eu.ha3.dyingdoc.domain.event.Event
 import eu.ha3.dyingdoc.spark.SparkConsumer
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.Assert.assertNotSame
@@ -22,11 +23,16 @@ var lastInstance: APIStepDefs? = null
 
 public class APIStepDefs : En {
     private var PORT = 58319
+    var consumer: SparkConsumer? = null // FIXME: It is currently global since there is an issue with the server shutdown
 
     private fun fixKotlin(referenceToThis: Any) {
         // Prevent Kotlin Optimization by referencing this
         // https://stackoverflow.com/questions/43938447/why-am-i-getting-an-arrayindexoutofboundsexception-running-this-particular-cucum
     }
+
+    private val NUM = "(\\d+)"
+
+    private val WORD = "(\\w+)"
 
     init {
         Before { scenario: Scenario ->
@@ -36,20 +42,23 @@ public class APIStepDefs : En {
             lastInstance = this
         }
 
-        var consumer: SparkConsumer? = null
+        After { scenario: Scenario ->
+            fixKotlin(this)
+        }
+
         Given("^the API runs$") {
             fixKotlin(this)
-
-            consumer = SparkConsumer.start(++PORT)
+            ensureApiIsRunning()
         }
 
         var visit: Response? = null
-        When("^visit the root path$") {
+        When("^I visit the root path$") {
             fixKotlin(this)
 
             visit = callUrl("http://localhost:$PORT/")
         }
-        When("^visit the health check") {
+
+        When("^I visit the health check") {
             fixKotlin(this)
 
             visit = callUrl("http://localhost:$PORT/_")
@@ -58,14 +67,74 @@ public class APIStepDefs : En {
         Then("^I get any response$") {
             assertThat(visit, notNullValue())
         }
-        Then("^the status code is (\\d+)$") { status: Int ->
+        Then("^the status code is $NUM$") { status: Int ->
             assertThat(visit?.code(), `is`(status))
+        }
+
+        Given("^there are initially $NUM events for device $WORD$") { eventCount: Int, device: String ->
+            fixKotlin(this)
+            ensureApiIsRunning()
+
+            createEvents(eventCount, device)
+            checkEventCountForDevice(eventCount, device)
+        }
+
+        When("^I send an event for device $WORD with state $WORD$") { device: String, state: String ->
+            fixKotlin(this)
+            val res = OkHttpClient().newCall(Request.Builder()
+                .method("POST", RequestBody.create(
+                    okhttp3.MediaType.parse("application/json"),
+                    Gson().toJson(Event.Request(device, "valid"))
+                ))
+                .url("http://localhost:$PORT/events")
+                .build()).execute()
+            assertThat(res.code(), `is`(201))
+        }
+
+        Then("^there are $NUM events for device $WORD$") { eventCount: Int, device: String ->
+            fixKotlin(this)
+
+            checkEventCountForDevice(eventCount, device)
         }
 
         After { scenario: Scenario ->
             fixKotlin(this)
 
             consumer?.kill()
+        }
+    }
+
+    private fun checkEventCountForDevice(eventCount: Int, device: String) {
+        val res = OkHttpClient().newCall(Request.Builder()
+            .method("POST", RequestBody.create(
+                MediaType.parse("application/json"),
+                Gson().toJson(Event.Request(device, "valid"))
+            ))
+            .url("http://localhost:$PORT/device/$device/events")
+            .build()).execute()
+        assertThat(res.code(), `is`(200))
+
+        res.body().use {
+            assertThat(JsonParser().parse(it!!.string()).asJsonArray.size(), `is`(eventCount))
+        }
+    }
+
+    private fun createEvents(eventCount: Int, device: String) {
+        for (eventNum: Int in 0 until eventCount) {
+            val res = OkHttpClient().newCall(Request.Builder()
+                .method("POST", RequestBody.create(
+                    MediaType.parse("application/json"),
+                    Gson().toJson(Event.Request(device, "state_$eventNum"))
+                ))
+                .url("http://localhost:$PORT/events")
+                .build()).execute()
+            assertThat(res.code(), `is`(201))
+        }
+    }
+
+    private fun ensureApiIsRunning() {
+        if (consumer == null) {
+            consumer = SparkConsumer.start(++PORT)
         }
     }
 
