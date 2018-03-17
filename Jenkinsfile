@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Archive test results') {
             steps {
-                archive 'testable-regular/target/report.pdf'
+                archive 'dying-documentation/testable-regular/target/report.pdf'
             }
         }
     }
