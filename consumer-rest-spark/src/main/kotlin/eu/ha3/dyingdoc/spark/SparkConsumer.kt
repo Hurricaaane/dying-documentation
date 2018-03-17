@@ -35,6 +35,7 @@ public class SparkConsumer private constructor(port: Int) {
         }
 
         isKilled = true
+        // FIXME: Why does stopping the Spark app fail?
         httpKt.service.stop()
     }
 

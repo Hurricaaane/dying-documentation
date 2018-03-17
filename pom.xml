@@ -14,7 +14,7 @@
         <module>services-impl</module>
         <module>gateways</module>
         <module>gateways-impl</module>
-        <module>consumer-api-spark</module>
+        <module>consumer-rest-spark</module>
         <module>testable-regular</module>
         <module>deployable-regular</module>
     </modules>

@@ -48,7 +48,7 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <artifactId>consumer-api-spark</artifactId>
+            <artifactId>consumer-rest-spark</artifactId>
             <groupId>eu.ha3.dyingdoc</groupId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
