@@ -55,7 +55,7 @@ sealed class Event {
         init {
             throwWhenDiscrepant(listOf(
                 device.discrepancyWhenNotStatement("device"),
-                device.discrepancyWhenNotStatement("state")
+                state.discrepancyWhenNotStatement("state")
             ))
         }
     }
