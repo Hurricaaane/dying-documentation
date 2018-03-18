@@ -45,6 +45,14 @@ public class SparkConsumer(
                 response.status(400)
                 gson.toJson(ExposedErrorData("Not a valid route"))
             }
+            httpKt.before {
+                // Try to support Opera browser
+                val origin: String = request.headers("origin") ?: "*"
+
+                response.header("Access-Control-Allow-Origin", origin)
+                response.header("Access-Control-Request-Method", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD, TRACE")
+                response.header("Access-Control-Allow-Headers", "Authorization, X-Module")
+            }
             httpKt.get("/_") {
                 ""
             }
