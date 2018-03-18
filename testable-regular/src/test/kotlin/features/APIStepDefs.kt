@@ -5,6 +5,7 @@ import com.google.gson.JsonParser
 import cucumber.api.Scenario
 import cucumber.api.java8.En
 import eu.ha3.dyingdoc.domain.event.Event
+import eu.ha3.dyingdoc.domain.event.StatementString
 import eu.ha3.dyingdoc.services.IEventsService
 import eu.ha3.dyingdoc.spark.SparkConsumer
 import okhttp3.*
@@ -135,11 +136,8 @@ public class APIStepDefs : En {
 
     private fun checkEventCountForDevice(eventCount: Int, device: String) {
         val res = OkHttpClient().newCall(Request.Builder()
-            .method("POST", RequestBody.create(
-                MediaType.parse("application/json"),
-                Gson().toJson(Event.Request(device, "valid"))
-            ))
             .url("http://localhost:$PORT/device/$device/events")
+            .get()
             .build()).execute()
         assertThat(res.code(), `is`(200))
 
@@ -164,6 +162,10 @@ public class APIStepDefs : En {
     private fun ensureApiIsRunning() {
         if (consumer == null) {
             consumer = SparkConsumer(++PORT, object : IEventsService {
+                override fun allOf(deviceId: StatementString): List<Event.Data> {
+                    throw NotImplementedError()
+                }
+
                 override fun create(eventRequest: Event.Request): Event.Data {
                     throw NotImplementedError()
                 }

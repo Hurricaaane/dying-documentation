@@ -18,7 +18,7 @@ import java.util.*
  */
 typealias StatementString = String
 
-private fun StatementString.asStatementString(param: String): String = this.discrepancyWhenNotStatement("StatementString")?.also {
+fun StatementString.asStatementString(param: String): String = this.discrepancyWhenNotStatement("StatementString")?.also {
         throw IllegalArgumentException(it)
     } ?: this
 
@@ -28,13 +28,13 @@ private fun StatementString.asStatementString(param: String): String = this.disc
  * - returns null if the StatementString is correct
  * - otherwise returns a String representing an error message
  */
-private fun StatementString.discrepancyWhenNotStatement(parameterName: String): String? = when {
+fun StatementString.discrepancyWhenNotStatement(parameterName: String): String? = when {
     this.isBlank() -> "$parameterName must not be blank (got: $this)"
     (this.trim() != this) -> "$parameterName must be trimmed (got: $this)"
     else -> null
 }
 
-private fun <T> T?.discrepancyWhenNull(parameterName: String) = when {
+fun <T> T?.discrepancyWhenNull(parameterName: String) = when {
     this == null -> "$parameterName must not be null"
     else -> null
 }

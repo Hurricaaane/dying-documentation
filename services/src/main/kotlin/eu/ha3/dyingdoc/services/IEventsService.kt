@@ -1,6 +1,7 @@
 package eu.ha3.dyingdoc.services
 
 import eu.ha3.dyingdoc.domain.event.Event
+import eu.ha3.dyingdoc.domain.event.StatementString
 
 /**
  * (Default template)
@@ -10,4 +11,5 @@ import eu.ha3.dyingdoc.domain.event.Event
  */
 interface IEventsService {
     fun create(eventRequest: Event.Request): Event.Data;
+    fun allOf(deviceId: StatementString): List<Event.Data>
 }

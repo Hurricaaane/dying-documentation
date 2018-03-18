@@ -1,14 +1,15 @@
 package eu.ha3.dyingdoc.spark
 
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.stub
 import eu.ha3.dyingdoc.domain.event.Event
+import eu.ha3.dyingdoc.domain.event.StatementString
 import eu.ha3.dyingdoc.services.IEventsService
 import okhttp3.*
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.greaterThan
 import org.hamcrest.core.IsNull.notNullValue
@@ -35,6 +36,9 @@ class SparkConsumerIntegrationTest {
     @BeforeAll
     fun beforeAll() {
         SUT = SparkConsumer(++PORT, object : IEventsService {
+            override fun allOf(deviceId: StatementString)
+                = eventsServiceMock.allOf(deviceId);
+
             override fun create(eventRequest: Event.Request)
                 = eventsServiceMock.create(eventRequest)
         })
@@ -143,6 +147,65 @@ class SparkConsumerIntegrationTest {
                     "Some statement"
                 )
             ))
+        }
+    }
+
+    @Test
+    fun `should device-events pass`() {
+        // S
+        eventsServiceMock.stub {
+            on {
+                allOf("Some device")
+
+            }.doReturn(listOf(
+                Event.Data("0123", "Some device", "Some statement"),
+                Event.Data("0124", "Some device", "Some other statement")
+            ))
+        }
+
+        // E
+        val response = OkHttpClient().newCall(Request.Builder()
+            .url("http://localhost:${PORT}/device/Some device/events")
+            .get()
+            .build()).execute()
+
+        // V
+        assertThat(response.code(), `is`(200))
+        response.body().use {
+            val body: String = it?.string()!!
+            assertThat(body.length, greaterThan(2))
+            val aTypeToken: TypeToken<List<Event.Data>> = object : TypeToken<List<Event.Data>>() {}
+            assertThat(Gson().fromJson(body, aTypeToken.type), `is`(listOf(
+                Event.Data("0123", "Some device", "Some statement"),
+                Event.Data("0124", "Some device", "Some other statement")
+            )))
+        }
+    }
+
+    @Test
+    fun `should device-events pass with empty array`() {
+        // S
+        val requestObj = Event.Request("Some device", "Some statement")
+        eventsServiceMock.stub {
+            on {
+                allOf("Some device")
+
+            }.doReturn(emptyList<Event.Data>())
+        }
+
+        // E
+        val response = OkHttpClient().newCall(Request.Builder()
+            .url("http://localhost:${PORT}/device/Some device/events")
+            .get()
+            .build()).execute()
+
+        // V
+        assertThat(response.code(), `is`(200))
+        response.body().use {
+            val body: String = it?.string()!!
+            assertThat(body.length, equalTo(2))
+            val aTypeToken: TypeToken<List<Event.Data>> = object : TypeToken<List<Event.Data>>() {}
+            assertThat(Gson().fromJson(body, aTypeToken.type), `is`(emptyList<Event.Data>()))
         }
     }
 

@@ -1,10 +1,7 @@
 package eu.ha3.dyingdoc.spark
 
 import com.google.gson.Gson
-import eu.ha3.dyingdoc.domain.event.ErrorCode
-import eu.ha3.dyingdoc.domain.event.ErrorCodeException
-import eu.ha3.dyingdoc.domain.event.Event
-import eu.ha3.dyingdoc.domain.event.ExposedErrorData
+import eu.ha3.dyingdoc.domain.event.*
 import eu.ha3.dyingdoc.services.IEventsService
 import spark.kotlin.Http
 import spark.kotlin.ignite
@@ -66,6 +63,17 @@ public class SparkConsumer(
                 response.status(201)
                 response.type("application/json")
                 gson.toJson(eventData)
+            }
+            httpKt.get("/device/:id/events") {
+                val deviceId = throwIfIllegal {
+                    request.params("id").asStatementString("id")
+                }
+
+                val events = eventsService.allOf(deviceId)
+
+                response.status(200)
+                response.type("application/json")
+                gson.toJson(events)
             }
 
         } catch (e: Exception) {
