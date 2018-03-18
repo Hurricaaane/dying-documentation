@@ -1,11 +1,16 @@
 package eu.ha3.dyingdoc.spark
 
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import com.google.gson.Gson
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.stub
+import eu.ha3.dyingdoc.domain.event.Event
+import eu.ha3.dyingdoc.services.IEventsService
+import okhttp3.*
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.greaterThan
 import org.hamcrest.core.IsNull.notNullValue
 import org.junit.jupiter.api.*
 import java.sql.SQLException
@@ -24,11 +29,26 @@ class SparkConsumerIntegrationTest {
 
     private lateinit var stageFns: MutableList<() -> Unit>
 
-    fun SUT() = stage(SparkConsumer.start(++PORT), SparkConsumer::kill)
+    private lateinit var SUT: SparkConsumer
+    private lateinit var eventsServiceMock: IEventsService
+
+    @BeforeAll
+    fun beforeAll() {
+        SUT = SparkConsumer(++PORT, object : IEventsService {
+            override fun create(eventRequest: Event.Request)
+                = eventsServiceMock.create(eventRequest)
+        })
+    }
+
+    @AfterAll
+    fun afterAll() {
+        SUT.kill()
+    }
 
     @BeforeEach
     fun setUp() {
         stageFns = mutableListOf()
+        eventsServiceMock = mock { }
     }
 
     @AfterEach
@@ -50,19 +70,14 @@ class SparkConsumerIntegrationTest {
     }
 
     @Test
-    fun should_start_respond() {
-        // E
-        val suite = SUT()
-
+    fun `should start respond`() {
+        // FIXME: Isn't this useless?
         // V
-        assertThat(suite, notNullValue())
+        assertThat(SUT, notNullValue())
     }
 
     @Test
-    fun should_api_respond() {
-        // S
-        SUT()
-
+    fun `should api respond`() {
         // E
         val response = callUrl("http://localhost:${PORT}/")
 
@@ -71,10 +86,7 @@ class SparkConsumerIntegrationTest {
     }
 
     @Test
-    fun should_healthcheck_respond() {
-        // S
-        SUT()
-
+    fun `should healthcheck respond`() {
         // E
         val response = callUrl("http://localhost:${PORT}/_")
 
@@ -84,12 +96,9 @@ class SparkConsumerIntegrationTest {
 
     @Test
     @Disabled // FIXME: Why does stopping the Spark app fail?
-    fun should_api_not_respond_when_killed() {
-        // S
-        val suite = SUT()
-
+    fun `should api not respond when killed`() {
         // E
-        suite.kill()
+        SUT.kill()
 
         try {
             // V
@@ -100,6 +109,59 @@ class SparkConsumerIntegrationTest {
             // V
             assertThat(e, instanceOf(SQLException::class.java))
         }
+    }
+
+    @Test
+    fun `should events-create pass`() {
+        // S
+        val requestObj = Event.Request("Some device", "Some statement")
+        eventsServiceMock.stub {
+            on {
+                create(Event.Request("Some device", "Some statement"))
+
+            }.doReturn(Event.Data("0123", "Some device", "Some statement"))
+        }
+
+        // E
+        val response = OkHttpClient().newCall(Request.Builder()
+            .url("http://localhost:${PORT}/events")
+            .post(RequestBody.create(
+                MediaType.parse("application/json"),
+                Gson().toJson(requestObj)
+            ))
+            .build()).execute()
+
+        // V
+        assertThat(response.code(), `is`(201))
+        response.body().use {
+            val body: String = it?.string()!!
+            assertThat(body.length, greaterThan(2))
+            assertThat(Gson().fromJson(body, Event.Data::class.java), `is`(
+                Event.Data(
+                    "0123",
+                    "Some device",
+                    "Some statement"
+                )
+            ))
+        }
+    }
+
+    @Test
+    fun `should events-create fail`() {
+        // S
+        val requestObj = Event.UnsafeRequest(null, "Some statement")
+
+        // E
+        val response = OkHttpClient().newCall(Request.Builder()
+            .url("http://localhost:${PORT}/events")
+            .post(RequestBody.create(
+                MediaType.parse("application/json"),
+                Gson().toJson(requestObj)
+            ))
+            .build()).execute()
+
+        // V
+        assertThat(response.code(), `is`(400))
     }
 
     private fun callUrl(url: String): Response {

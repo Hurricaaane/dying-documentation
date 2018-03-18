@@ -5,6 +5,7 @@ import com.google.gson.JsonParser
 import cucumber.api.Scenario
 import cucumber.api.java8.En
 import eu.ha3.dyingdoc.domain.event.Event
+import eu.ha3.dyingdoc.services.IEventsService
 import eu.ha3.dyingdoc.spark.SparkConsumer
 import okhttp3.*
 import org.hamcrest.CoreMatchers.`is`
@@ -134,7 +135,11 @@ public class APIStepDefs : En {
 
     private fun ensureApiIsRunning() {
         if (consumer == null) {
-            consumer = SparkConsumer.start(++PORT)
+            consumer = SparkConsumer(++PORT, object : IEventsService {
+                override fun create(eventRequest: Event.Request): Event.Data {
+                    throw NotImplementedError()
+                }
+            })
         }
     }
 
