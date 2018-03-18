@@ -23,10 +23,12 @@ import org.junit.jupiter.api.function.Executable
  */
 
 var lastInstance: APIStepDefs? = null
-private var PORT = 58319
 
 public class APIStepDefs : En {
-    var consumer: SparkConsumer? = null // FIXME: It is currently global since there is an issue with the server shutdown
+    companion object {
+        private var PORT = 58319
+        var consumer: SparkConsumer? = null // FIXME: It is currently global since there is an issue with the server shutdown
+    }
 
     private fun fixKotlin(referenceToThis: Any) {
         // Prevent Kotlin Optimization by referencing this
@@ -131,6 +133,7 @@ public class APIStepDefs : En {
             fixKotlin(this)
 
             consumer?.kill()
+            consumer = null
         }
     }
 
