@@ -13,13 +13,11 @@ pipeline {
                 '''
             }
         }
-        stage('Archive test results') {
-            steps {
-                archive 'dying-documentation/testable-regular/target/report.pdf'
-            }
-        }
     }
     post {
+        always {
+            archive 'dying-documentation/testable-regular/target/report.pdf'
+        }
         success {
             updateGitlabCommitStatus name: 'jenkins', state: 'success'
         }
