@@ -16,7 +16,8 @@ import org.junit.runner.RunWith
     glue = ["features"],
     features = [
         "classpath:features/bootstrapping.feature",
-        "classpath:features/event.feature"
+        "classpath:features/event.feature",
+        "classpath:features/support-opera.feature"
     ]
 )
 class AllGroupsTest

@@ -8,10 +8,11 @@ import eu.ha3.dyingdoc.domain.event.Event
 import eu.ha3.dyingdoc.services.IEventsService
 import eu.ha3.dyingdoc.spark.SparkConsumer
 import okhttp3.*
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertThat
+import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.function.Executable
 
 /**
  * (Default template)
@@ -34,6 +35,7 @@ public class APIStepDefs : En {
     private val NUM = "(\\d+)"
 
     private val WORD = "(\\w+)"
+    private val NON_WHITESPACE = "([^ ]+)"
 
     init {
         Before { scenario: Scenario ->
@@ -90,6 +92,32 @@ public class APIStepDefs : En {
                 .url("http://localhost:$PORT/events")
                 .build()).execute()
             assertThat(res.code(), `is`(201))
+        }
+
+
+        When("^I perform an OPTIONS request to the health check with $WORD header set to $NON_WHITESPACE$") { name: String, value: String ->
+            fixKotlin(this)
+
+            visit = OkHttpClient().newCall(Request.Builder()
+                .method("OPTIONS", null)
+                .url("http://localhost:$PORT/_")
+                .header(name, value)
+                .build()).execute()
+        }
+
+        Then("^the $NON_WHITESPACE header is $NON_WHITESPACE$") { name: String, value: String ->
+            assertThat(visit!!.header(name), `is`(value))
+        }
+
+        Then("^the $NON_WHITESPACE header contains all of $NON_WHITESPACE$") { name: String, valuesCommaSeparated: String ->
+            val header = visit!!.header(name)
+            assertAll(
+                *valuesCommaSeparated.split(",")
+                    .map {
+                        Executable { assertThat(header, containsString(it)) }
+                    }
+                    .toTypedArray()
+            )
         }
 
         Then("^there are $NUM events for device $WORD$") { eventCount: Int, device: String ->
