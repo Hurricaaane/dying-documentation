@@ -132,8 +132,11 @@ public class APIStepDefs : En {
         After { scenario: Scenario ->
             fixKotlin(this)
 
-            consumer?.kill()
-            consumer = null
+            // FIXME Issue when running under maven-surefire
+            if (false) {
+                consumer?.kill()
+                consumer = null
+            }
         }
     }
 
