@@ -16,6 +16,7 @@ pipeline {
     }
     post {
         always {
+            junit '**/target/surefire-reports/*.xml'
             archive 'testable-regular/target/report.pdf'
         }
         success {
