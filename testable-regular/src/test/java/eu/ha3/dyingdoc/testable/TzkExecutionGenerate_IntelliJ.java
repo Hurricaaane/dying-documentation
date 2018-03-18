@@ -13,11 +13,13 @@ import java.nio.file.Paths;
  * @author Ha3
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({AllGroups.class})
-public class TzkExecutionGenerateTest {
+@Suite.SuiteClasses({AllGroupsTest.class})
+public class TzkExecutionGenerate_IntelliJ {
     @AfterClass
     public static void generateExecutionReport() {
-        System.out.println("Generating PDF");
+        // For Maven Surefire, which for some reason does not execute the @AfterClass on the suite
+        // see TzkListener instead
+        System.out.println("Generating PDF from TzkExecutionGenerate_IntelliJ");
         new PdfReportGenerator(Paths.get("")).run();
     }
 }

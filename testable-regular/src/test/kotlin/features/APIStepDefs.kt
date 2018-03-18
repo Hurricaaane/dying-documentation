@@ -21,9 +21,9 @@ import org.junit.Assert.assertThat
  */
 
 var lastInstance: APIStepDefs? = null
+private var PORT = 58319
 
 public class APIStepDefs : En {
-    private var PORT = 58319
     var consumer: SparkConsumer? = null // FIXME: It is currently global since there is an issue with the server shutdown
 
     private fun fixKotlin(referenceToThis: Any) {

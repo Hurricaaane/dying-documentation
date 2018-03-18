@@ -19,4 +19,4 @@ import org.junit.runner.RunWith
         "classpath:features/event.feature"
     ]
 )
-class AllGroups
+class AllGroupsTest

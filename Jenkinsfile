@@ -16,7 +16,7 @@ pipeline {
     }
     post {
         always {
-            archive 'dying-documentation/testable-regular/target/report.pdf'
+            archive 'testable-regular/target/report.pdf'
         }
         success {
             updateGitlabCommitStatus name: 'jenkins', state: 'success'
