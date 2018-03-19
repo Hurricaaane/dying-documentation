@@ -25,6 +25,8 @@ import org.junit.jupiter.api.function.Executable
 var lastInstance: APIStepDefs? = null
 
 public class APIStepDefs : En {
+    private lateinit var eventsService: IEventsService
+
     companion object {
         private var PORT = 58319
         var consumer: SparkConsumer? = null // FIXME: It is currently global since there is an issue with the server shutdown
@@ -43,6 +45,9 @@ public class APIStepDefs : En {
     init {
         Before { scenario: Scenario ->
             fixKotlin(this)
+
+            val injector = Injector()
+            eventsService = injector.eventsService
 
             assertNotSame(this, lastInstance)
             lastInstance = this
@@ -168,13 +173,9 @@ public class APIStepDefs : En {
     private fun ensureApiIsRunning() {
         if (consumer == null) {
             consumer = SparkConsumer(++PORT, object : IEventsService {
-                override fun allOf(deviceId: StatementString): List<Event.Data> {
-                    throw NotImplementedError()
-                }
+                override fun create(eventRequest: Event.Request) = eventsService.create(eventRequest)
 
-                override fun create(eventRequest: Event.Request): Event.Data {
-                    throw NotImplementedError()
-                }
+                override fun allOf(deviceId: StatementString) = eventsService.allOf(deviceId)
             })
         }
     }

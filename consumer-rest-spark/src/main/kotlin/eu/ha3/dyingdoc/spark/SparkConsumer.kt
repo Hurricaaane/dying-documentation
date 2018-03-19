@@ -87,7 +87,7 @@ public class SparkConsumer(
             return spawnFn()
 
         } catch (e: IllegalArgumentException) {
-            throw ErrorCode.INVALID_REQUEST.newException(ExposedErrorData(e.message ?: "(no description)"), e)
+            throw ErrorCode.INVALID_REQUEST.exception(ExposedErrorData(e.message ?: "(no description)"), e)
         }
     }
 

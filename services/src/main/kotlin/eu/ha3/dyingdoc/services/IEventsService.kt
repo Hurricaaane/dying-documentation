@@ -11,5 +11,5 @@ import eu.ha3.dyingdoc.domain.event.StatementString
  */
 interface IEventsService {
     fun create(eventRequest: Event.Request): Event.Data;
-    fun allOf(deviceId: StatementString): List<Event.Data>
+    fun allOf(device: StatementString): List<Event.Data>
 }

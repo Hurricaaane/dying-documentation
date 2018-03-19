@@ -52,6 +52,9 @@ sealed class Event {
     }
 
     data class Request(val device: StatementString, val state: StatementString) {
+        fun isSameAs(other: Data): Boolean =
+            other.device == this.device && other.state == this.state
+
         init {
             throwWhenDiscrepant(listOf(
                 device.discrepancyWhenNotStatement("device"),
@@ -60,7 +63,15 @@ sealed class Event {
         }
     }
 
-    data class Data(val id: StatementString, val device: StatementString, val state: StatementString)
+    data class Data(val id: StatementString, val device: StatementString, val state: StatementString) {
+        init {
+            throwWhenDiscrepant(listOf(
+                id.discrepancyWhenNotStatement("id"),
+                device.discrepancyWhenNotStatement("device"),
+                state.discrepancyWhenNotStatement("state")
+            ))
+        }
+    }
 
     companion object {
         private fun throwWhenDiscrepant(listOf: List<String?>) {
