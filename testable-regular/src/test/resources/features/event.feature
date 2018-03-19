@@ -19,3 +19,11 @@ Feature: Event recording
     When I send an event for device A with state some_random_state
     Then there are 1 events for device A
     And there are 2 events for device B
+    And the first event for device A has state some_random_state
+
+  Scenario: the same event sent twice in a row is only recorded once
+    Given there are initially 10 events for device A
+    When I send an event for device A with state some_random_state
+    And I send another event for device A with state some_random_state
+    Then there are 11 events for device A
+    And the last event for device A has state some_random_state

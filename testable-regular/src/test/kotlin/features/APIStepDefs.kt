@@ -25,10 +25,9 @@ import org.junit.jupiter.api.function.Executable
 var lastInstance: APIStepDefs? = null
 
 public class APIStepDefs : En {
-    private lateinit var eventsService: IEventsService
-
     companion object {
         private var PORT = 58319
+        private lateinit var eventsService: IEventsService
         var consumer: SparkConsumer? = null // FIXME: It is currently global since there is an issue with the server shutdown
     }
 
@@ -90,18 +89,17 @@ public class APIStepDefs : En {
             checkEventCountForDevice(eventCount, device)
         }
 
-        When("^I send an event for device $WORD with state $WORD$") { device: String, state: String ->
+        When("^I send (?:an|another) event for device $WORD with state $WORD$") { device: String, state: String ->
             fixKotlin(this)
             val res = OkHttpClient().newCall(Request.Builder()
                 .method("POST", RequestBody.create(
                     okhttp3.MediaType.parse("application/json"),
-                    Gson().toJson(Event.Request(device, "valid"))
+                    Gson().toJson(Event.Request(device, state))
                 ))
                 .url("http://localhost:$PORT/events")
                 .build()).execute()
             assertThat(res.code(), `is`(201))
         }
-
 
         When("^I perform an OPTIONS request to the health check with $WORD header set to $NON_WHITESPACE$") { name: String, value: String ->
             fixKotlin(this)
@@ -132,6 +130,18 @@ public class APIStepDefs : En {
             fixKotlin(this)
 
             checkEventCountForDevice(eventCount, device)
+        }
+
+        Then("^the $WORD event for device $WORD has state $WORD$") { selector: String, device: String, state: String ->
+            fixKotlin(this)
+
+            val allOf = eventsService.allOf(device)
+            val selected = when (selector) {
+                "first" -> allOf.first()
+                "last" -> allOf.last()
+                else -> throw AssertionError("Unrecognized selector: $selector")
+            }
+            assertThat(selected.state, `is`(state))
         }
 
         After { scenario: Scenario ->
