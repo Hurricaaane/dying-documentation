@@ -9,10 +9,7 @@ import eu.ha3.dyingdoc.domain.event.Event
 import eu.ha3.dyingdoc.domain.event.StatementString
 import eu.ha3.dyingdoc.services.IEventsService
 import okhttp3.*
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.greaterThan
-import org.hamcrest.core.IsNull.notNullValue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import java.sql.SQLException
 import java.util.*
@@ -77,7 +74,7 @@ class SparkConsumerIntegrationTest {
     fun `should start respond`() {
         // FIXME: Isn't this useless?
         // V
-        assertThat(SUT, notNullValue())
+        assertThat(SUT).isNotNull()
     }
 
     @Test
@@ -86,7 +83,7 @@ class SparkConsumerIntegrationTest {
         val response = callUrl("http://localhost:${PORT}/")
 
         // V
-        assertThat(response.code() / 100, `is`(4))
+        assertThat(response.code() / 100).isEqualTo(4)
     }
 
     @Test
@@ -95,7 +92,7 @@ class SparkConsumerIntegrationTest {
         val response = callUrl("http://localhost:${PORT}/_")
 
         // V
-        assertThat(response.code(), `is`(200))
+        assertThat(response.code()).isEqualTo(200)
     }
 
     @Test
@@ -111,7 +108,7 @@ class SparkConsumerIntegrationTest {
 
         } catch (e: Exception) {
             // V
-            assertThat(e, instanceOf(SQLException::class.java))
+            assertThat(e).isInstanceOf(SQLException::class.java)
         }
     }
 
@@ -136,17 +133,17 @@ class SparkConsumerIntegrationTest {
             .build()).execute()
 
         // V
-        assertThat(response.code(), `is`(201))
+        assertThat(response.code()).isEqualTo(201)
         response.body().use {
             val body: String = it?.string()!!
-            assertThat(body.length, greaterThan(2))
-            assertThat(Gson().fromJson(body, Event.Data::class.java), `is`(
+            assertThat(body.length).isGreaterThan(2)
+            assertThat(Gson().fromJson(body, Event.Data::class.java) as Event.Data).isEqualTo(
                 Event.Data(
                     "0123",
                     "Some device",
                     "Some statement"
                 )
-            ))
+            )
         }
     }
 
@@ -170,15 +167,15 @@ class SparkConsumerIntegrationTest {
             .build()).execute()
 
         // V
-        assertThat(response.code(), `is`(200))
+        assertThat(response.code()).isEqualTo(200)
         response.body().use {
             val body: String = it?.string()!!
-            assertThat(body.length, greaterThan(2))
+            assertThat(body.length).isGreaterThan(2)
             val aTypeToken: TypeToken<List<Event.Data>> = object : TypeToken<List<Event.Data>>() {}
-            assertThat(Gson().fromJson(body, aTypeToken.type), `is`(listOf(
+            assertThat(Gson().fromJson(body, aTypeToken.type) as List<Event.Data>).isEqualTo(listOf(
                 Event.Data("0123", "Some device", "Some statement"),
                 Event.Data("0124", "Some device", "Some other statement")
-            )))
+            ))
         }
     }
 
@@ -200,12 +197,12 @@ class SparkConsumerIntegrationTest {
             .build()).execute()
 
         // V
-        assertThat(response.code(), `is`(200))
+        assertThat(response.code()).isEqualTo(200)
         response.body().use {
             val body: String = it?.string()!!
-            assertThat(body.length, equalTo(2))
+            assertThat(body.length).isEqualTo(2)
             val aTypeToken: TypeToken<List<Event.Data>> = object : TypeToken<List<Event.Data>>() {}
-            assertThat(Gson().fromJson(body, aTypeToken.type), `is`(emptyList<Event.Data>()))
+            assertThat(Gson().fromJson(body, aTypeToken.type) as List<Event.Data>).isEqualTo(emptyList<Event.Data>())
         }
     }
 
@@ -224,7 +221,7 @@ class SparkConsumerIntegrationTest {
             .build()).execute()
 
         // V
-        assertThat(response.code(), `is`(400))
+        assertThat(response.code()).isEqualTo(400)
     }
 
     private fun callUrl(url: String): Response {

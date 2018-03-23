@@ -3,10 +3,7 @@ package eu.ha3.dyingdoc.services
 import com.nhaarman.mockito_kotlin.*
 import eu.ha3.dyingdoc.domain.event.Event
 import eu.ha3.dyingdoc.gateways.IEventStore
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.collection.IsEmptyCollection
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -40,7 +37,7 @@ class EventsServiceImplTest {
         val response = SUT.create(toCreate)
 
         // V
-        assertThat(response, `is`(newlyCreated))
+        assertThat(response).isEqualTo(newlyCreated)
     }
 
     @Test
@@ -57,7 +54,7 @@ class EventsServiceImplTest {
         val response = SUT.create(toCreate)
 
         // V
-        assertThat(response, `is`(currentlyStored))
+        assertThat(response).isEqualTo(currentlyStored)
         verify(mockEventStore, never()).store(any())
     }
 
@@ -77,7 +74,7 @@ class EventsServiceImplTest {
         val response = SUT.create(toCreate)
 
         // V
-        assertThat(response, `is`(newlyCreated))
+        assertThat(response).isEqualTo(newlyCreated)
     }
 
     @Test
@@ -91,7 +88,7 @@ class EventsServiceImplTest {
         val list = SUT.allOf("some device")
 
         // V
-        assertThat(list, `is`(IsEmptyCollection.empty()))
+        assertThat(list).isEmpty()
     }
 
     @Test
@@ -111,7 +108,7 @@ class EventsServiceImplTest {
         val list = SUT.allOf("some device")
 
         // V
-        assertThat(list.size, equalTo(3))
-        assertThat(list, `is`(expectedList))
+        assertThat(list.size).isEqualTo(3)
+        assertThat(list).isEqualTo(expectedList)
     }
 }

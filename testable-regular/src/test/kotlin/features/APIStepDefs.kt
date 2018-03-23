@@ -9,9 +9,8 @@ import eu.ha3.dyingdoc.domain.event.StatementString
 import eu.ha3.dyingdoc.services.IEventsService
 import eu.ha3.dyingdoc.spark.SparkConsumer
 import okhttp3.*
-import org.hamcrest.CoreMatchers.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertNotSame
-import org.junit.Assert.assertThat
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.function.Executable
 
@@ -75,10 +74,10 @@ public class APIStepDefs : En {
         }
 
         Then("^I get any response$") {
-            assertThat(visit, notNullValue())
+            assertThat(visit).isNotNull()
         }
         Then("^the status code is $NUM$") { status: Int ->
-            assertThat(visit?.code(), `is`(status))
+            assertThat(visit?.code()).isEqualTo(status)
         }
 
         Given("^there are initially $NUM events for device $WORD$") { eventCount: Int, device: String ->
@@ -98,7 +97,7 @@ public class APIStepDefs : En {
                 ))
                 .url("http://localhost:$PORT/events")
                 .build()).execute()
-            assertThat(res.code(), `is`(201))
+            assertThat(res.code()).isEqualTo(201)
         }
 
         When("^I perform an OPTIONS request to the health check with $WORD header set to $NON_WHITESPACE$") { name: String, value: String ->
@@ -112,7 +111,7 @@ public class APIStepDefs : En {
         }
 
         Then("^the $NON_WHITESPACE header is $NON_WHITESPACE$") { name: String, value: String ->
-            assertThat(visit!!.header(name), `is`(value))
+            assertThat(visit!!.header(name)).isEqualTo(value)
         }
 
         Then("^the $NON_WHITESPACE header contains all of $NON_WHITESPACE$") { name: String, valuesCommaSeparated: String ->
@@ -120,7 +119,7 @@ public class APIStepDefs : En {
             assertAll(
                 *valuesCommaSeparated.split(",")
                     .map {
-                        Executable { assertThat(header, containsString(it)) }
+                        Executable { assertThat(header).contains(it) }
                     }
                     .toTypedArray()
             )
@@ -141,7 +140,7 @@ public class APIStepDefs : En {
                 "last" -> allOf.last()
                 else -> throw AssertionError("Unrecognized selector: $selector")
             }
-            assertThat(selected.state, `is`(state))
+            assertThat(selected.state).isEqualTo(state)
         }
 
         After { scenario: Scenario ->
@@ -160,10 +159,10 @@ public class APIStepDefs : En {
             .url("http://localhost:$PORT/device/$device/events")
             .get()
             .build()).execute()
-        assertThat(res.code(), `is`(200))
+        assertThat(res.code()).isEqualTo(200)
 
         res.body().use {
-            assertThat(JsonParser().parse(it!!.string()).asJsonArray.size(), `is`(eventCount))
+            assertThat(JsonParser().parse(it!!.string()).asJsonArray.size()).isEqualTo(eventCount)
         }
     }
 
@@ -176,7 +175,7 @@ public class APIStepDefs : En {
                 ))
                 .url("http://localhost:$PORT/events")
                 .build()).execute()
-            assertThat(res.code(), `is`(201))
+            assertThat(res.code()).isEqualTo(201)
         }
     }
 
